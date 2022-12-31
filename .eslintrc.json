@@ -1,0 +1,41 @@
+{
+    "env": {
+        "node": true,
+        "commonjs": true,
+        "es2021": true,
+        "browser": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "rules": {
+        "no-unused-vars": "off"
+    },
+    "globals": {
+        "app": "readonly",
+        "ApiClient": "readonly",
+        "SclDocument": "readonly",
+        "SclIED": "readonly",
+        "Handlebars": "readonly",
+        "$": "readonly",
+        "toastr": "readonly",
+        "PageDashboard": "readonly",
+        "PageLog": "readonly",
+        "PageLogMultiple": "readonly",
+        "PagePacketIntake": "readonly",
+        "PageConfiguration": "readonly",
+        "PageSclConfiguration": "readonly",
+        "PageSamplehandling": "readonly",
+        "PageSVServerStatus": "readonly",
+        "PageLicenses": "readonly",
+        "PageHardware": "readonly",
+        "PageAuthentication": "readonly",
+        "PageSclValidation": "readonly",
+        "PageRbac": "readonly",
+        "PageRbacTest": "readonly",
+        "PageSessions": "readonly",
+        "PageError": "readonly",
+        "compareSensorId": "readonly"
+    }
+}

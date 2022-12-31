@@ -76,7 +76,7 @@ class DesfireBase {
                 ISO7816ReadBinary: 0xB0,
                 ISO7816UpdateBinary: 0xD6
             },
-            
+
             status: {
                 success: 0x00,
                 noChanges: 0x0C,
@@ -108,13 +108,13 @@ class DesfireBase {
                 listingWithoutMk: 0x02, // Picc key: If this bit is set, GetApplicationIDs, GetKeySettings do not require MK authentication, App  key: If this bit is set, GetFileIDs, GetFileSettings, GetKeySettings do not require MK authentication.
                 createDeleteWithoutMk: 0x04, // Picc key: If this bit is set, CreateApplication does not require MK authentication, App  key: If this bit is set, CreateFile, DeleteFile do not require MK authentication.
                 configurationChangeable: 0x08, // If this bit is set, the configuration settings of the MK can be changed, otherwise they are frozen.
-                
+
                 // Bits 4-7 (not used for the PICC master key)
                 changeKeyWithMk: 0x00, // A key change requires MK authentication
                 changeKeyWithKey1: 0x10, // A key change requires authentication with key 1
                 changeKeyWithKey2: 0x20, // A key change requires authentication with key 2
                 changeKeyWithKey3: 0x30, // A key change requires authentication with key 3
-                changeKeyWithKey4: 0x40, // A key change requires authentication with key 4 
+                changeKeyWithKey4: 0x40, // A key change requires authentication with key 4
                 changeKeyWithKey5: 0x50, // A key change requires authentication with key 5
                 changeKeyWithKey6: 0x60, // A key change requires authentication with key 6
                 changeKeyWithKey7: 0x70, // A key change requires authentication with key 7
@@ -129,7 +129,7 @@ class DesfireBase {
 
                 factoryDefault: 0x0F
             },
-            
+
             keyType: {
                 DES: 0x00,
                 TDES: 0x40,
@@ -170,7 +170,7 @@ class DesfireBase {
             }
         };
     }
-};
+}
 
 class DesfireKey extends DesfireBase {
     constructor(keyId, key) {
@@ -196,22 +196,22 @@ class DesfireKey extends DesfireBase {
         this.cmac1 = null;
         this.cmac2 = null;
     }
-    
+
     rotateLeft(buffer) {
         return Buffer.concat([buffer.slice(1, buffer.length), buffer.slice(0, 1)]);
     }
-    
+
     rotateRight(buffer) {
         return Buffer.concat([buffer.slice(buffer.length - 1, buffer.length), buffer.slice(0, buffer.length - 1)]);
     }
-    
+
     bitShiftLeft(buffer) {
         for (let index = 0; index < buffer.length - 1; index++) {
             buffer[index] = (buffer[index] << 1) | (buffer[index + 1] >> 7);
         }
         buffer[buffer.length - 1] = buffer[buffer.length - 1] << 1;
     }
-    
+
     clearIv(session) {
         if (session) {
             this.sessionIv = Buffer.alloc(this.blockSize).fill(0);
@@ -247,11 +247,11 @@ class DesfireKey extends DesfireBase {
     decrypt(data, session) {
         throw new Error("not implemented");
     }
-    
+
     encrypt(data, session) {
         throw new Error("not implemented");
     }
-    
+
     async authenticate() {
         throw new Error("not implemented");
     }
@@ -265,7 +265,7 @@ class DesfireKeyDes extends DesfireKey {
         }
         this.blockSize = 8;
     }
-    
+
     decrypt(data, session) {
         const decipher = crypto.createDecipheriv("DES-EDE-CBC", session ? this.sessionKey : this.authenticationKey, Buffer.alloc(8).fill(0));
         decipher.setAutoPadding(false);
@@ -277,7 +277,7 @@ class DesfireKeyDes extends DesfireKey {
         decipher.setAutoPadding(false);
         return Buffer.concat([decipher.update(data), decipher.final()]);
     }
-    
+
     async authenticate(card) {
         this.clearIv(false);
         let [data, returnCode] = await card.communicate(this.constants.commands.AuthenticateLegacy, [this.authenticationkeyIdentifier], null, false, false, false, false);
@@ -299,7 +299,7 @@ class DesfireKeyDes extends DesfireKey {
         if (!this.random_a.equals(random_a2)) { // compare decrypted random_a2 response from reader with our random_a if it equals authentication process was successful
             throw new Error("failed to match random_a random bytes");
         }
-        
+
         this.sessionKey = Buffer.concat([this.random_a.slice(0,4), this.random_b.slice(0,4), this.random_a.slice(0,4), this.random_b.slice(0,4)]);
         this.clearIv(true);
         this.generateCmacSubKeys();
@@ -327,7 +327,7 @@ class DesfireKeyAes extends DesfireKey {
         }
         return result;
     }
-    
+
     encrypt(data, session) {
         //if (session) console.log("AES E", this.sessionIv);
         const cipher = crypto.createCipheriv("AES-128-CBC", session ? this.sessionKey : this.authenticationKey, session ? this.sessionIv : this.authenticationIv);
@@ -340,7 +340,7 @@ class DesfireKeyAes extends DesfireKey {
         }
         return result;
     }
-    
+
     async authenticate(card) {
         this.clearIv(false);
         let [data, returnCode] = await card.communicate(this.constants.commands.Ev1AuthenticateAes, [this.authenticationkeyIdentifier], null, false, false, false, false);
@@ -362,7 +362,7 @@ class DesfireKeyAes extends DesfireKey {
         if (!this.random_a.equals(random_a2)) { // compare decrypted random_a2 response from reader with our random_a if it equals authentication process was successful
             throw new Error("failed to match random_a random bytes");
         }
-        
+
         this.sessionKey = Buffer.concat([this.random_a.slice(0,4), this.random_b.slice(0,4), this.random_a.slice(12, 16), this.random_b.slice(12, 16)]);
         this.clearIv(true);
         this.generateCmacSubKeys();
@@ -389,12 +389,12 @@ class DesfireCardVersion extends DesfireBase {
         this.softwareMinorVersion = buffer.readUint8(11);
         this.softwareStorageSize  = buffer.readUint8(12);
         this.softwareProtocol     = buffer.readUint8(13);
-        this.uid                  = buffer.slice(14,21).toJSON().data;;
-        this.batchNumber          = buffer.slice(21,26).toJSON().data;;
+        this.uid                  = buffer.slice(14,21).toJSON().data;
+        this.batchNumber          = buffer.slice(21,26).toJSON().data;
         this.productionWeek       = buffer.readUint8(26);
         this.productionYear       = buffer.readUint8(27);
     }
-    
+
     print() {
         console.log("Hardware version: " + this.hardwareMajorVersion + "." + this.HardwareMinorVersion);
         console.log("Software version: " + this.softwareMajorVersion + "." + this.softwareMinorVersion);
@@ -410,7 +410,7 @@ class DesfireCardVersion extends DesfireBase {
             uidStringArray.push(((this.uid[index] < 0x10) ? "0" : "") + this.uid[index].toString(16));
         }
         console.log("Unique ID:        " + uidStringArray.join(""));
-        
+
     }
 }
 
@@ -436,7 +436,7 @@ class DesfireKeySettings {
             this.keyType = "aes";
         }
     }
-    
+
     getBuffer() {
         let _keyType = null;
         if (this.keyType === "des") {
@@ -469,6 +469,8 @@ class DesfireCard extends DesfireBase {
 
         this.key = null;
         this.appId = 0x000000;
+
+        this.uid = null;
     }
 
     // Helper functions
@@ -581,7 +583,7 @@ class DesfireCard extends DesfireBase {
         if (inputCrc != calcCrc) console.log("CRC INVALID", buffer, dataLength, inputCrc.toString(16), calcCrc.toString(16));
         return (inputCrc == calcCrc);
     }
-    
+
     crc32(data) {
         let poly = 0xEDB88320;
         let crc = 0xFFFFFFFF;
@@ -595,7 +597,7 @@ class DesfireCard extends DesfireBase {
                 }
             }
         }
-        
+
         return crc >>> 0;
     }
 
@@ -643,7 +645,7 @@ class DesfireCard extends DesfireBase {
         this.key.sessionIv.copy(result);
         return buffer;
     }
-    
+
     wrap(cmd, dataIn) {
         if (dataIn.length > 0) {
             return Buffer.from([0x90, cmd, 0x00, 0x00, dataIn.length, ...dataIn, 0x00]);
@@ -656,6 +658,26 @@ class DesfireCard extends DesfireBase {
         const decipher = crypto.createDecipheriv("AES-128-CBC", key, iv);
         decipher.setAutoPadding(false);
         return Buffer.concat([decipher.update(data), decipher.final()]);
+    }
+
+    // Standard smartcard commands
+
+    async getUid() {
+        const packet = Buffer.from([0xff, 0xca, 0x00, 0x00, 0x00]);
+        const response = await this._reader.transmit(packet, 12);
+
+        if (response.length < 2) {
+            throw new Error("Response soo short");
+        }
+
+        const statusCode = response.slice(-2).readUInt16BE(0);
+
+        if (statusCode !== 0x9000) {
+            throw new Error("Error response from card");
+        }
+
+        this.uid = response.slice(0, -2).toString('hex');
+        return this.uid;
     }
 
     // Security related commands
@@ -728,6 +750,9 @@ class DesfireCard extends DesfireBase {
         newKey.authenticationKey.copy(encryptedParameters, 0);
         encryptedParameters.writeUint8(keyVersion, 16);
 
+        var data = null;
+        var returnCode = null;
+
         if (this.key.authenticationkeyIdentifier !== keyNo) { // Changing diffent key
             for (let byte = 0; byte < newKey.keyLength; byte++) { // XOR new key data with old key
                 encryptedParameters[byte] ^= oldKey.authenticationKey[byte];
@@ -735,9 +760,9 @@ class DesfireCard extends DesfireBase {
             let newKeyCrc = this.crc32(newKey.authenticationKey);
             let newKeyCrcBuffer = Buffer.alloc(4);
             newKeyCrcBuffer.writeUInt32LE(newKeyCrc);
-            var [data, returnCode] = await this.communicate(this.constants.commands.ChangeKey, parameters, encryptedParameters, false, true, false, false, newKeyCrcBuffer);
+            [data, returnCode] = await this.communicate(this.constants.commands.ChangeKey, parameters, encryptedParameters, false, true, false, false, newKeyCrcBuffer);
         } else {
-            var [data, returnCode] = await this.communicate(this.constants.commands.ChangeKey, parameters, encryptedParameters, false, false);
+            [data, returnCode] = await this.communicate(this.constants.commands.ChangeKey, parameters, encryptedParameters, false, false);
             this.key = null; // Currently authenticated key was changed, we are no longer authenticated
         }
 
@@ -822,7 +847,7 @@ class DesfireCard extends DesfireBase {
             throw new Error("failed to get card version (" + this.getKeyByValue(this.constants.status, returnCode) + ")");
         }
         return new DesfireCardVersion(data);
-    };
+    }
 
     // Application level commands
 
@@ -906,7 +931,7 @@ class DesfireCard extends DesfireBase {
         if (returnCode !== this.constants.status.success) {
             throw new Error("Failed to get file settings (" + this.getKeyByValue(this.constants.status, returnCode) + ")");
         }
-        return data; 
+        return data;
     }
 
     // Data manipulation commands
@@ -921,7 +946,7 @@ class DesfireCard extends DesfireBase {
             throw new Error("Failed to read file contents [plain] (" + this.getKeyByValue(this.constants.status, returnCode) + ")");
         }
         return data;
-    };
+    }
 
     async readDataCmac(aFileId, aOffset = 0, aLength = 0) {
         let parameters = Buffer.alloc(7);
@@ -933,7 +958,7 @@ class DesfireCard extends DesfireBase {
             throw new Error("Failed to read file contents [cmac] (" + this.getKeyByValue(this.constants.status, returnCode) + ")");
         }
         return data;
-    };
+    }
 
     async readDataEncrypted(aFileId, aOffset = 0, aLength = 0) {
         let parameters = Buffer.alloc(7);
@@ -948,7 +973,7 @@ class DesfireCard extends DesfireBase {
             throw new Error("Invalid CRC");
         }
         return data.slice(0,aLength);
-    };
+    }
 
     async writeDataPlain(aFileId, aData, aOffset = 0) {
         let parameters = Buffer.alloc(7 + aData.length);
@@ -1038,12 +1063,12 @@ class DesfireCard extends DesfireBase {
             throw new Error("Failed to get free memory (" + this.getKeyByValue(this.constants.status, returnCode) + ")");
         }
         return Buffer.concat([data.slice(0,3), Buffer.from([0x00])]).readUint32LE();
-    };
+    }
 
     async ev1GetDfNames() {
         throw new Error("Not implemented");
     }
-    
+
     async ev1GetCardUid() {
         let [data, returnCode] = await this.communicate(this.constants.commands.Ev1GetCardUid, [], null, true, false, true);
         if (returnCode !== this.constants.status.success) {
@@ -1053,7 +1078,7 @@ class DesfireCard extends DesfireBase {
             throw new Error("Invalid CRC");
         }
         return data.slice(0,7);
-    };
+    }
 
     async ev1GetIsoFileIdentifiers() {
         throw new Error("Not implemented");
